@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VEDU OS — Personal Life OS</title>
+<style>
+  :root{
+    --bg:#0a0d16;
+    --panel:#12161f;
+    --panel2:#151a25;
+    --border:#232838;
+    --text:#e7e9ee;
+    --muted:#8892a4;
+    --muted2:#5f6779;
+    --purple:#8b6cf9;
+    --purple-dim:#7c5cf0;
+    --green:#22c55e;
+    --orange:#f5a623;
+    --blue:#3ba7ff;
+    --pink:#ef5d9d;
+    --cyan:#22d3d3;
+    --red:#f0475d;
+    --yellow:#f2c94c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+    display:flex;
+    min-height:100vh;
+  }
+  a{color:inherit;text-decoration:none;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#2a2f3f;border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:250px;
+    min-width:250px;
+    background:#0d111a;
+    border-right:1px solid var(--border);
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    position:sticky;
+    top:0;
+    overflow-y:auto;
+    padding:18px 14px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:10px;
+    padding:6px 8px 18px 8px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:12px;
+  }
+  .brand .logo{
+    width:42px;height:42px;border-radius:12px;
+    background:linear-gradient(135deg,var(--purple),#5b3df0);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;color:white;
+  }
+  .brand h1{font-size:15px;margin:0;color:white;letter-spacing:.3px;}
+  .brand p{font-size:11px;margin:1px 0 0 0;color:var(--muted);}
+
+  .nav-item{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 12px;border-radius:10px;
+    font-size:13.5px;color:#b9bfcc;
+    cursor:pointer;margin-bottom:2px;
+    transition:background .15s, color .15s;
+    white-space:nowrap;
+  }
+  .nav-item .ic{width:18px;text-align:center;font-size:15px;}
+  .nav-item:hover{background:#171c28;color:white;}
+  .nav-item.active{
+    background:linear-gradient(135deg,var(--purple-dim),#5b3df0);
+    color:white;font-weight:600;
+  }
+  .nav-section{margin-top:4px;}
+
+  .focus-box{
+    margin-top:16px;
+    background:#141225;
+    border:1px solid #2c2560;
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+  }
+  .focus-box .tag{
+    font-size:10px;letter-spacing:.6px;color:var(--purple);font-weight:700;margin-bottom:8px;
+  }
+  .focus-box .time{font-size:26px;font-weight:700;color:white;margin:4px 0 2px 0;}
+  .focus-box .sub{font-size:11px;color:var(--muted);margin-bottom:10px;}
+  .focus-btn{
+    background:var(--purple-dim);color:white;border:none;
+    padding:8px 0;width:100%;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;
+  }
+  .focus-btn:hover{background:#6b4cf0;}
+
+  /* ---------- Main ---------- */
+  .main{flex:1;min-width:0;padding:26px 30px 90px 30px;}
+  .topbar{
+    display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;margin-bottom:22px;
+  }
+  .topbar h2{font-size:26px;margin:0 0 4px 0;color:white;}
+  .topbar .quote{color:var(--muted);font-size:13.5px;margin:0;font-style:italic;}
+  .topbar-right{display:flex;gap:10px;}
+  .pill{
+    background:var(--panel);border:1px solid var(--border);
+    padding:9px 16px;border-radius:20px;font-size:13px;color:#c7cbd6;
+    display:flex;align-items:center;gap:8px;
+  }
+
+  h3.page-title{font-size:22px;margin:0 0 16px 0;color:white;}
+
+  /* Stat cards */
+  .stat-grid{
+    display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:20px;
+  }
+  @media(max-width:1400px){.stat-grid{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:800px){.stat-grid{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:16px;position:relative;overflow:hidden;
+  }
+  .stat-card .top-row{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12.5px;margin-bottom:10px;}
+  .stat-card .icon{font-size:16px;}
+  .stat-card .value{font-size:22px;font-weight:700;color:white;margin-bottom:2px;}
+  .stat-card .foot{font-size:11.5px;color:var(--muted2);margin-bottom:10px;}
+  .bar-track{height:6px;border-radius:6px;background:#232838;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:6px;}
+
+  /* Panels grid */
+  .grid3{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  .grid3b{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;}
+  @media(max-width:1200px){.grid3,.grid2,.grid3b{grid-template-columns:1fr;}}
+
+  .card{
+    background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);
+    padding:18px;min-width:0;
+  }
+  .card h4{
+    font-size:12.5px;letter-spacing:.5px;text-transform:uppercase;margin:0 0 14px 0;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .card h4 .label{font-weight:700;}
+  .card h4 .addbtn{
+    background:var(--purple-dim);color:white;border:none;border-radius:7px;
+    font-size:11px;padding:5px 10px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:600;
+  }
+  .card h4 .addbtn:hover{background:#6b4cf0;}
+  .linkout{color:var(--purple);font-size:12.5px;display:inline-flex;align-items:center;gap:4px;margin-top:10px;cursor:pointer;}
+
+  table.tsk{width:100%;border-collapse:collapse;font-size:12.8px;}
+  table.tsk th{text-align:left;color:var(--muted2);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--border);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;}
+  table.tsk td{padding:8px 8px;border-bottom:1px solid #1a1e29;color:#d5d8e0;}
+  table.tsk tr:last-child td{border-bottom:none;}
+  .prio-high{color:var(--red);}
+  .prio-medium{color:var(--orange);}
+  .prio-low{color:var(--green);}
+  .chk{
+    width:17px;height:17px;border-radius:5px;border:1.5px solid #3a4053;
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;color:transparent;font-size:12px;
+  }
+  .chk.done{background:var(--green);border-color:var(--green);color:#08130a;}
+  .delbtn{background:none;border:none;color:#59606f;cursor:pointer;font-size:13px;padding:2px 6px;}
+  .delbtn:hover{color:var(--red);}
+
+  .donut-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+  .donut{
+    width:150px;height:150px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;
+  }
+  .donut .hole{
+    width:96px;height:96px;background:var(--panel);border-radius:50%;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+  }
+  .donut .hole b{font-size:22px;color:white;}
+  .donut .hole span{font-size:10.5px;color:var(--muted);}
+  .legend{flex:1;min-width:140px;}
+  .legend-row{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;padding:5px 0;color:#cfd3dc;}
+  .legend-row .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:8px;}
+  .legend-row b{color:white;}
+
+  .barchart{display:flex;align-items:flex-end;gap:10px;height:150px;margin-top:6px;}
+  .barchart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px;}
+  .barchart .bars{display:flex;align-items:flex-end;gap:2px;height:120px;}
+  .barchart .b{width:9px;border-radius:3px 3px 0 0;}
+  .barchart .day{font-size:10.5px;color:var(--muted2);margin-top:6px;}
+  .chart-legend{display:flex;gap:16px;font-size:11.5px;color:var(--muted);margin-top:10px;}
+  .chart-legend .dot{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:6px;}
+
+  .goal-row{margin-bottom:14px;}
+  .goal-row .grow{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:#dfe2e8;}
+  .goal-row .grow .pct{color:var(--muted);font-size:12px;}
+
+  .habit-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .habit-table th{color:var(--muted2);font-weight:600;padding:6px 4px;text-align:center;font-size:11px;}
+  .habit-table th:first-child{text-align:left;}
+  .habit-table td{padding:7px 4px;text-align:center;border-top:1px solid #1a1e29;}
+  .habit-table td:first-child{text-align:left;color:#d5d8e0;}
+  .hcell{
+    width:20px;height:20px;border-radius:50%;border:1.5px solid #3a4053;display:inline-flex;
+    align-items:center;justify-content:center;cursor:pointer;color:transparent;font-size:11px;
+  }
+  .hcell.done{background:var(--green);border-color:var(--green);color:#08130a;}
+
+  .meal-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #1a1e29;font-size:13px;}
+  .meal-row:first-of-type{border-top:none;}
+  .meal-row .mi{font-size:16px;width:20px;}
+  .meal-row .mname{flex:1;color:#dfe2e8;}
+  .meal-row .mtype{color:var(--muted2);font-size:11px;width:70px;}
+
+  .event-row,.prio-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #1a1e29;font-size:13px;}
+  .event-row:first-of-type,.prio-row:first-of-type{border-top:none;}
+  .event-row .ei{font-size:15px;}
+  .event-row .ename{flex:1;color:#dfe2e8;}
+  .event-row .edate{font-size:12px;color:var(--muted);}
+  .prio-row .pnum{
+    width:20px;height:20px;border-radius:50%;background:#232838;color:var(--purple);
+    display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+  }
+  .prio-row .pname{flex:1;color:#dfe2e8;}
+  .quote-box{
+    background:#171225;border:1px solid #2c2560;border-radius:10px;padding:10px 12px;margin-top:12px;font-size:12px;color:#cfc9f5;
+  }
+
+  .bottomnav{
+    position:fixed;bottom:0;left:250px;right:0;
+    background:#0d111a;border-top:1px solid var(--border);
+    display:flex;gap:6px;padding:10px 24px;overflow-x:auto;
+    z-index:20;
+  }
+  .bottomnav .bitem{
+    display:flex;align-items:center;gap:7px;padding:8px 16px;border-radius:20px;font-size:12.5px;
+    color:var(--muted);cursor:pointer;white-space:nowrap;border:1px solid transparent;
+  }
+  .bottomnav .bitem.active{background:linear-gradient(135deg,var(--purple-dim),#5b3df0);color:white;}
+  .bottomnav .bitem:hover:not(.active){background:#171c28;}
+
+  /* Generic list page */
+  .add-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .add-row input, .add-row select{
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    padding:9px 12px;border-radius:9px;font-size:13px;outline:none;
+  }
+  .add-row input:focus, .add-row select:focus{border-color:var(--purple-dim);}
+  .add-row input[type=text]{flex:1;min-width:160px;}
+  .add-row button{
+    background:var(--purple-dim);color:white;border:none;border-radius:9px;padding:9px 18px;
+    font-size:13px;cursor:pointer;font-weight:600;
+  }
+  .add-row button:hover{background:#6b4cf0;}
+
+  .list-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:8px 18px;}
+  .list-row{
+    display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #1a1e29;font-size:13.5px;
+  }
+  .list-row:last-child{border-bottom:none;}
+  .list-row .lmain{flex:1;color:#e2e5ec;}
+  .list-row .lmain.done{color:#5f6779;text-decoration:line-through;}
+  .list-row .ltag{font-size:11px;padding:3px 9px;border-radius:12px;background:#1f2536;color:var(--muted);}
+  .empty-state{padding:40px 10px;text-align:center;color:var(--muted2);font-size:13px;}
+
+  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+  @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr);}}
+  .kpi{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;}
+  .kpi .k-label{font-size:11.5px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+  .kpi .k-val{font-size:21px;font-weight:700;color:white;}
+
+  .progress-item{margin-bottom:16px;}
+  .progress-item .pi-top{display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;}
+  .progress-item .pi-top .nm{color:#e2e5ec;}
+  .progress-item .pi-top .pc{color:var(--muted);}
+
+  select option{background:#151a25;}
+
+  ::placeholder{color:#5a6172;}
+
+  .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:900px){.settings-grid{grid-template-columns:1fr;}}
+  .setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #1a1e29;font-size:13.5px;}
+  .setting-row:last-child{border-bottom:none;}
+  .toggle{width:40px;height:22px;border-radius:20px;background:#232838;position:relative;cursor:pointer;flex-shrink:0;}
+  .toggle.on{background:var(--purple-dim);}
+  .toggle .knob{position:absolute;top:2px;left:2px;width:18px;height:18px;background:white;border-radius:50%;transition:left .15s;}
+  .toggle.on .knob{left:20px;}
+
+  textarea.note-area{
+    width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    border-radius:9px;padding:12px;font-size:13.5px;font-family:inherit;resize:vertical;min-height:90px;outline:none;
+  }
+  textarea.note-area:focus{border-color:var(--purple-dim);}
+
+  .journal-entry{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .journal-entry .jdate{font-size:11.5px;color:var(--purple);font-weight:700;margin-bottom:6px;}
+  .journal-entry .jtext{font-size:13.5px;color:#d9dce3;white-space:pre-wrap;}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;background:var(--panel);border:1px solid var(--border);
+    border-left:3px solid var(--green);padding:12px 18px;border-radius:10px;font-size:13px;color:white;
+    box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:100;opacity:0;transform:translateY(10px);transition:all .25s;
+  }
+  .toast.show{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar"></div>
+
+<div class="main" id="main"></div>
+
+<div class="bottomnav" id="bottomnav"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================= DATA ============================= */
+const NAV = [
+  {id:'dashboard', label:'Dashboard', icon:'🏠'},
+  {id:'schedule', label:'Daily Schedule', icon:'📅'},
+  {id:'todo', label:'To-Do List', icon:'✅'},
+  {id:'studyplan', label:'Weekly Study Plan', icon:'📘'},
+  {id:'habits', label:'Habit Tracker', icon:'📈'},
+  {id:'meals', label:'Meal Tracker', icon:'🍽️'},
+  {id:'grocery', label:'Grocery List', icon:'🛒'},
+  {id:'finance', label:'Finance Tracker', icon:'💲'},
+  {id:'savings', label:'Savings Goals', icon:'🏦'},
+  {id:'skills', label:'Skill Progress', icon:'📊'},
+  {id:'internship', label:'Internship Tracker', icon:'💼'},
+  {id:'earn', label:'Earn Money Tracker', icon:'💵'},
+  {id:'calendar', label:'Master Calendar', icon:'🗓️'},
+  {id:'journal', label:'Journal', icon:'📓'},
+  {id:'notes', label:'Notes', icon:'📝'},
+  {id:'settings', label:'Settings', icon:'⚙️'},
+];
+const BOTTOM = ['dashboard','schedule','todo','studyplan','habits','finance'];
+
+let uid = 1000;
+const nid = ()=> uid++;
+
+const state = {
+  page: 'dashboard',
+  userName: 'Vedu',
+  schedule: [
+    {id:nid(),time:'8:00 AM',task:'Wake up, Freshen up',category:'Personal',priority:'High',done:true},
+    {id:nid(),time:'8:30 AM',task:'Breakfast + Plan the day',category:'Personal',priority:'Medium',done:true},
+    {id:nid(),time:'10:00 AM',task:'AI/ML Class (Pune)',category:'Study',priority:'High',done:true},
+    {id:nid(),time:'1:00 PM',task:'Lunch',category:'Personal',priority:'Medium',done:true},
+    {id:nid(),time:'2:00 PM',task:'Python Practice',category:'Study',priority:'High',done:false},
+    {id:nid(),time:'4:00 PM',task:'DSA Problems',category:'Study',priority:'High',done:false},
+    {id:nid(),time:'6:00 PM',task:'Gym / Workout',category:'Health',priority:'Medium',done:false},
+    {id:nid(),time:'8:00 PM',task:'Dinner',category:'Personal',priority:'Medium',done:false},
+    {id:nid(),time:'9:00 PM',task:'SQL Practice',category:'Study',priority:'Medium',done:false},
+    {id:nid(),time:'10:30 PM',task:'Read / Watch Lecture',category:'Study',priority:'Low',done:false},
+    {id:nid(),time:'12:00 AM',task:'Journal + Plan Tomorrow',category:'Personal',priority:'Low',done:false},
+  ],
+  todos: [
+    {id:nid(),text:'Finish SQL Project',priority:'High',done:false},
+    {id:nid(),text:'Python Data Structures',priority:'High',done:false},
+    {id:nid(),text:'Exercise & Eat Healthy',priority:'Medium',done:false},
+    {id:nid(),text:'Submit AI/ML Assignment',priority:'High',done:false},
+    {id:nid(),text:'Read one chapter of book',priority:'Low',done:true},
+  ],
+  studyplan: [
+    {id:nid(),subject:'Python',progress:80,color:'green'},
+    {id:nid(),subject:'Java + DSA',progress:65,color:'blue'},
+    {id:nid(),subject:'SQL',progress:70,color:'purple'},
+    {id:nid(),subject:'AI/ML',progress:75,color:'orange'},
+    {id:nid(),subject:'Others',progress:60,color:'pink'},
+  ],
+  studyHoursGoal:6,
+  studyHoursToday:4.5,
+  habitStreakBest:21,
+  sleep:{hours:7,mins:20,goalLow:7,goalHigh:8},
+  healthyScore:85,
+  habits: [
+    {id:nid(),name:'Drink Water (3L)',week:[true,true,true,true,true,true,false]},
+    {id:nid(),name:'Exercise',week:[true,true,true,true,true,false,true]},
+    {id:nid(),name:'Read Book',week:[true,true,true,false,true,true,false]},
+    {id:nid(),name:'No Junk Food',week:[true,true,true,true,false,true,true]},
+    {id:nid(),name:'Sleep Before 12',week:[true,true,false,true,false,false,true]},
+  ],
+  meals: [
+    {id:nid(),type:'Breakfast',icon:'🍳',name:'Sprouts + 2 Boiled Eggs',done:true},
+    {id:nid(),type:'Lunch',icon:'🥗',name:'Chana Salad + Paneer',done:true},
+    {id:nid(),type:'Dinner',icon:'🍲',name:'Veg Stir Fry + Soup',done:false},
+    {id:nid(),type:'Snacks',icon:'🍌',name:'Banana, Nuts',done:true},
+    {id:nid(),type:'Water',icon:'💧',name:'2.5 / 3 L',done:false},
+  ],
+  grocery: [
+    {id:nid(),name:'Eggs (dozen)',qty:'1',bought:false},
+    {id:nid(),name:'Bananas',qty:'6',bought:true},
+    {id:nid(),name:'Paneer',qty:'400g',bought:false},
+    {id:nid(),name:'Oats',qty:'1 pack',bought:false},
+    {id:nid(),name:'Almonds',qty:'250g',bought:true},
+  ],
+  finance:{
+    income:5000, expenses:3800, savings:1200, budgetLeft:1200,
+    expenseCategories:[
+      {name:'Food',amount:1500,color:'pink'},
+      {name:'Rent',amount:1000,color:'blue'},
+      {name:'Transport',amount:600,color:'orange'},
+      {name:'Shopping',amount:400,color:'yellow'},
+      {name:'Others',amount:300,color:'red'},
+    ],
+    transactions:[
+      {id:nid(),desc:'Salary / Stipend',amount:5000,type:'income'},
+      {id:nid(),desc:'Rent',amount:1000,type:'expense'},
+      {id:nid(),desc:'Groceries',amount:800,type:'expense'},
+    ]
+  },
+  savingsGoals:[
+    {id:nid(),name:'MacBook Accessories',saved:6500,target:15000},
+    {id:nid(),name:'Emergency Fund',saved:2000,target:10000},
+    {id:nid(),name:'New Phone',saved:1500,target:20000},
+    {id:nid(),name:'SSD Upgrade',saved:800,target:6000},
+  ],
+  skills:[
+    {id:nid(),name:'Python',progress:80},
+    {id:nid(),name:'Java + DSA',progress:65},
+    {id:nid(),name:'SQL',progress:70},
+    {id:nid(),name:'AI / ML',progress:75},
+    {id:nid(),name:'Communication',progress:55},
+  ],
+  internships:[
+    {id:nid(),company:'InfoLabs Pvt Ltd',role:'AI/ML Intern',status:'Applied',deadline:'20 May'},
+    {id:nid(),company:'CodeStream',role:'Backend Intern',status:'Interview',deadline:'22 May'},
+  ],
+  earnings:[
+    {id:nid(),source:'Freelance - Web fix',amount:1200,date:'10 May'},
+    {id:nid(),source:'Tutoring',amount:800,date:'12 May'},
+  ],
+  events:[
+    {id:nid(),icon:'📝',name:'AI/ML Assignment',date:'15 May'},
+    {id:nid(),icon:'💾',name:'SQL Project Submission',date:'18 May'},
+    {id:nid(),icon:'🏃',name:'Python Test',date:'20 May'},
+    {id:nid(),icon:'🎂',name:"Friend's Birthday",date:'22 May'},
+    {id:nid(),icon:'🏆',name:'DSA Contest',date:'25 May'},
+  ],
+  priorities:[
+    {id:nid(),text:'Finish SQL Project',level:'High'},
+    {id:nid(),text:'Python Data Structures',level:'High'},
+    {id:nid(),text:'Exercise & Eat Healthy',level:'Medium'},
+  ],
+  journal:[
+    {id:nid(),date:'12 May 2025',text:'Good study session today, finished the Python module. Need to focus more on DSA tomorrow.'},
+  ],
+  notes:[
+    {id:nid(),title:'Interview prep',text:'Revise SQL joins, window functions, and 2 STAR stories.'},
+  ],
+  settings:{
+    darkMode:true, notifications:true, focusReminders:true, weekStartsMonday:true,
+  },
+  todayLabel: 'Tuesday, 13 May 2025',
+};
+
+const COLORS = {green:'#22c55e',blue:'#3ba7ff',purple:'#8b6cf9',orange:'#f5a623',pink:'#ef5d9d',red:'#f0475d',yellow:'#f2c94c',cyan:'#22d3d3'};
+
+// Computes the current habit streak live from the habit grid: consecutive days,
+// counting back from the most recent tracked day, where every habit is checked off.
+function computeHabitStreak(){
+  const habits = state.habits;
+  if(!habits.length) return 0;
+  const days = habits[0].week.length;
+  let current = 0;
+  for(let d=days-1; d>=0; d--){
+    const allDone = habits.every(h => h.week[d]);
+    if(allDone) current++; else break;
+  }
+  if(current > state.habitStreakBest) state.habitStreakBest = current;
+  return current;
+}
+
+/* ============================= HELPERS ============================= */
+function el(html){ const t=document.createElement('template'); t.innerHTML=html.trim(); return t.content.firstElementChild; }
+function fmt(n){ return '₹'+Number(n).toLocaleString('en-IN'); }
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>t.classList.remove('show'), 1800);
+}
+function priorityClass(p){ return p==='High'?'prio-high':p==='Medium'?'prio-medium':'prio-low'; }
+
+function conicGradient(segments){
+  // segments: [{value, color}]
+  const total = segments.reduce((a,s)=>a+s.value,0) || 1;
+  let acc=0; const parts=[];
+  segments.forEach(s=>{
+    const start = acc/total*360;
+    acc += s.value;
+    const end = acc/total*360;
+    parts.push(`${s.color} ${start}deg ${end}deg`);
+  });
+  return `conic-gradient(${parts.join(',')})`;
+}
+
+function go(page){
+  state.page = page;
+  render();
+  window.scrollTo(0,0);
+}
+
+/* ============================= SIDEBAR ============================= */
+function renderSidebar(){
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML='';
+  sb.appendChild(el(`
+    <div class="brand">
+      <div class="logo">VS</div>
+      <div>
+        <h1>VEDU OS</h1>
+        <p>Personal Life OS</p>
+      </div>
+    </div>
+  `));
+  const navWrap = el(`<div class="nav-section"></div>`);
+  NAV.forEach(item=>{
+    const row = el(`<div class="nav-item ${state.page===item.id?'active':''}"><span class="ic">${item.icon}</span><span>${item.label}</span></div>`);
+    row.addEventListener('click', ()=>go(item.id));
+    navWrap.appendChild(row);
+  });
+  sb.appendChild(navWrap);
+
+  const focusBox = el(`
+    <div class="focus-box">
+      <div class="tag">FOCUS MODE</div>
+      <div class="time" id="focusTime">25:00</div>
+      <div class="sub">Pomodoro Timer</div>
+      <button class="focus-btn" id="focusBtn">Start</button>
+    </div>
+  `);
+  sb.appendChild(focusBox);
+  setTimeout(setupFocusTimer,0);
+}
+
+let focusInterval=null, focusSeconds=25*60, focusRunning=false;
+function setupFocusTimer(){
+  const btn = document.getElementById('focusBtn');
+  const disp = document.getElementById('focusTime');
+  if(!btn) return;
+  function updateDisp(){
+    const m = String(Math.floor(focusSeconds/60)).padStart(2,'0');
+    const s = String(focusSeconds%60).padStart(2,'0');
+    disp.textContent = `${m}:${s}`;
+  }
+  updateDisp();
+  btn.onclick = ()=>{
+    if(focusRunning){
+      clearInterval(focusInterval);
+      focusRunning=false;
+      btn.textContent='Resume';
+    } else {
+      focusRunning=true;
+      btn.textContent='Pause';
+      focusInterval=setInterval(()=>{
+        focusSeconds--;
+        if(focusSeconds<=0){
+          clearInterval(focusInterval);
+          focusRunning=false;
+          focusSeconds=25*60;
+          btn.textContent='Start';
+          toast('🎉 Focus session complete!');
+        }
+        updateDisp();
+      },1000);
+    }
+  };
+}
+
+/* ============================= BOTTOM NAV ============================= */
+function renderBottomNav(){
+  const bn = document.getElementById('bottomnav');
+  bn.innerHTML='';
+  BOTTOM.forEach(id=>{
+    const item = NAV.find(n=>n.id===id);
+    const row = el(`<div class="bitem ${state.page===id?'active':''}"><span>${item.icon}</span><span>${item.label}</span></div>`);
+    row.addEventListener('click', ()=>go(id));
+    bn.appendChild(row);
+  });
+  const more = el(`<div class="bitem">⋯ More Sheets</div>`);
+  more.addEventListener('click', ()=>{
+    const rest = NAV.filter(n=>!BOTTOM.includes(n.id));
+    const choice = prompt('Go to:\n'+rest.map((n,i)=>`${i+1}. ${n.label}`).join('\n'));
+    const idx = parseInt(choice)-1;
+    if(rest[idx]) go(rest[idx].id);
+  });
+  bn.appendChild(more);
+}
+
+/* ============================= PAGE: DASHBOARD ============================= */
+function pageDashboard(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`
+    <div class="topbar">
+      <div>
+        <h2>Good Morning, ${state.userName}! 👋</h2>
+        <p class="quote">"Discipline today, freedom tomorrow."</p>
+      </div>
+      <div class="topbar-right">
+        <div class="pill">📅 ${state.todayLabel}</div>
+        <div class="pill" id="clockPill">🕐 --:--</div>
+      </div>
+    </div>
+  `));
+
+  // stat cards
+  const doneCount = state.todos.filter(t=>t.done).length;
+  const totalTodos = state.todos.length || 1;
+  const habitStreakNow = computeHabitStreak();
+  const stats = el(`<div class="stat-grid"></div>`);
+  const statDefs = [
+    {icon:'📖',label:'Study Hours Today',value:`${state.studyHoursToday} hrs`,foot:`🎯 Goal: ${state.studyHoursGoal} hrs`,pct:Math.min(100,state.studyHoursToday/state.studyHoursGoal*100),color:COLORS.blue},
+    {icon:'✅',label:'Tasks Completed',value:`${doneCount} / ${totalTodos}`,foot:`${Math.round(doneCount/totalTodos*100)}%`,pct:doneCount/totalTodos*100,color:COLORS.green},
+    {icon:'🔥',label:'Habit Streak',value:`${habitStreakNow} days`,foot:`Best: ${state.habitStreakBest} days`,pct:habitStreakNow/state.habitStreakBest*100,color:COLORS.orange},
+    {icon:'🌙',label:'Sleep',value:`${state.sleep.hours}h ${state.sleep.mins}m`,foot:`Goal: ${state.sleep.goalLow}-${state.sleep.goalHigh} hrs`,pct:70,color:COLORS.cyan},
+    {icon:'💰',label:'Money Saved',value:fmt(state.finance.savings),foot:'This Month',pct:60,color:COLORS.green},
+    {icon:'❤️',label:'Healthy Score',value:`${state.healthyScore} / 100`,foot:'Great job!',pct:state.healthyScore,color:COLORS.pink},
+  ];
+  statDefs.forEach(s=>{
+    stats.appendChild(el(`
+      <div class="stat-card">
+        <div class="top-row"><span class="icon">${s.icon}</span><span>${s.label}</span></div>
+        <div class="value">${s.value}</div>
+        <div class="foot">${s.foot}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,s.pct)}%;background:${s.color}"></div></div>
+      </div>
+    `));
+  });
+  wrap.appendChild(stats);
+
+  // row: schedule / study progress / tasks overview
+  const row1 = el(`<div class="grid3"></div>`);
+  row1.appendChild(dashScheduleCard());
+  row1.appendChild(dashStudyProgressCard());
+  row1.appendChild(dashTasksOverviewCard());
+  wrap.appendChild(row1);
+
+  // row: finance summary / expenses / savings goals
+  const row2 = el(`<div class="grid3"></div>`);
+  row2.appendChild(dashFinanceSummaryCard());
+  row2.appendChild(dashExpensesCard());
+  row2.appendChild(dashSavingsCard());
+  wrap.appendChild(row2);
+
+  // row: habit / meal / events+priorities
+  const row3 = el(`<div class="grid3"></div>`);
+  row3.appendChild(dashHabitCard());
+  row3.appendChild(dashMealCard());
+  const col = el(`<div style="display:flex;flex-direction:column;gap:16px;"></div>`);
+  col.appendChild(dashEventsCard());
+  col.appendChild(dashPrioritiesCard());
+  row3.appendChild(col);
+  wrap.appendChild(row3);
+
+  updateClock();
+  return wrap;
+}
+
+function updateClock(){
+  const p = document.getElementById('clockPill');
+  if(!p) return;
+  const now = new Date();
+  p.textContent = '🕐 ' + now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+}
+setInterval(updateClock,15000);
+
+function dashScheduleCard(){
+  const upcoming = state.schedule.slice(0,6);
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">TODAY'S SCHEDULE</span><span class="addbtn">Open →</span></h4>
+      <table class="tsk">
+        <tr><th>Time</th><th>Task</th><th>Priority</th><th></th></tr>
+        ${upcoming.map(s=>`
+          <tr>
+            <td>${s.time}</td>
+            <td>${s.task}</td>
+            <td class="${priorityClass(s.priority)}">${s.priority}</td>
+            <td><span class="chk ${s.done?'done':''}" data-id="${s.id}">✓</span></td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+  `);
+  card.querySelector('.addbtn').addEventListener('click',()=>go('schedule'));
+  card.querySelectorAll('.chk').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const item = state.schedule.find(s=>s.id==c.dataset.id);
+      item.done=!item.done;
+      render();
+    });
+  });
+  return card;
+}
+
+function dashStudyProgressCard(){
+  const total = state.studyplan.reduce((a,s)=>a+s.progress,0);
+  const overall = Math.round(total/state.studyplan.length);
+  const segs = state.studyplan.map(s=>({value:s.progress,color:COLORS[s.color]}));
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">STUDY PROGRESS</span></h4>
+      <div class="donut-wrap">
+        <div class="donut" style="background:${conicGradient(segs)}"><div class="hole"><b>${overall}%</b><span>Overall Progress</span></div></div>
+        <div class="legend">
+          ${state.studyplan.map(s=>`<div class="legend-row"><span><span class="dot" style="background:${COLORS[s.color]}"></span>${s.subject}</span><b>${s.progress}%</b></div>`).join('')}
+        </div>
+      </div>
+      <div class="linkout" id="viewProgress">View Detailed Progress →</div>
+    </div>
+  `);
+  card.querySelector('#viewProgress').addEventListener('click',()=>go('studyplan'));
+  return card;
+}
+
+function dashTasksOverviewCard(){
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const data = [12,11,13,10,12,9,7];
+  const totals = [15,14,15,13,14,12,11];
+  const maxV = Math.max(...totals);
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">TASKS OVERVIEW</span></h4>
+      <div class="barchart">
+        ${days.map((d,i)=>`
+          <div class="col">
+            <div class="bars">
+              <div class="b" style="height:${data[i]/maxV*120}px;background:var(--purple);"></div>
+              <div class="b" style="height:${totals[i]/maxV*120}px;background:#2b3143;"></div>
+            </div>
+            <div class="day">${d}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="chart-legend"><span><span class="dot" style="background:var(--purple)"></span>Completed</span><span><span class="dot" style="background:#2b3143"></span>Total</span></div>
+    </div>
+  `);
+  return card;
+}
+
+function dashFinanceSummaryCard(){
+  const f = state.finance;
+  const segs=[{value:f.savings,color:COLORS.green},{value:f.expenses,color:COLORS.red}];
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">FINANCE SUMMARY (May)</span></h4>
+      <div class="donut-wrap">
+        <div class="donut" style="background:${conicGradient(segs)}"><div class="hole"><b>${fmt(f.savings)}</b><span>Saved</span></div></div>
+        <div class="legend">
+          <div class="legend-row"><span><span class="dot" style="background:${COLORS.green}"></span>Income</span><b>${fmt(f.income)}</b></div>
+          <div class="legend-row"><span><span class="dot" style="background:${COLORS.red}"></span>Expenses</span><b>${fmt(f.expenses)}</b></div>
+          <div class="legend-row"><span><span class="dot" style="background:${COLORS.blue}"></span>Savings</span><b>${fmt(f.savings)}</b></div>
+          <div class="legend-row"><span><span class="dot" style="background:${COLORS.yellow}"></span>Budget Left</span><b>${fmt(f.budgetLeft)}</b></div>
+        </div>
+      </div>
+      <div class="linkout" id="goFinance">Go to Finance Tracker →</div>
+    </div>
+  `);
+  card.querySelector('#goFinance').addEventListener('click',()=>go('finance'));
+  return card;
+}
+
+function dashExpensesCard(){
+  const f = state.finance;
+  const total = f.expenseCategories.reduce((a,c)=>a+c.amount,0);
+  const segs = f.expenseCategories.map(c=>({value:c.amount,color:COLORS[c.color]}));
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">EXPENSES BREAKDOWN (May)</span></h4>
+      <div class="donut-wrap">
+        <div class="donut" style="background:${conicGradient(segs)}"><div class="hole"><b>${fmt(total)}</b><span>Total</span></div></div>
+        <div class="legend">
+          ${f.expenseCategories.map(c=>`<div class="legend-row"><span><span class="dot" style="background:${COLORS[c.color]}"></span>${c.name}</span><b>${fmt(c.amount)}</b></div>`).join('')}
+        </div>
+      </div>
+      <div class="linkout" id="viewFull">View Full Report →</div>
+    </div>
+  `);
+  card.querySelector('#viewFull').addEventListener('click',()=>go('finance'));
+  return card;
+}
+
+function dashSavingsCard(){
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">SAVINGS GOALS</span></h4>
+      ${state.savingsGoals.map(g=>`
+        <div class="goal-row">
+          <div class="grow"><span>${g.name}</span><span class="pct">${fmt(g.saved)} / ${fmt(g.target)} · ${Math.round(g.saved/g.target*100)}%</span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${g.saved/g.target*100}%;background:var(--green)"></div></div>
+        </div>
+      `).join('')}
+      <div class="linkout" id="goSavings">Go to Savings Goals →</div>
+    </div>
+  `);
+  card.querySelector('#goSavings').addEventListener('click',()=>go('savings'));
+  return card;
+}
+
+function dashHabitCard(){
+  const days=['M','T','W','T','F','S','S'];
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">HABIT TRACKER (This Week)</span></h4>
+      <table class="habit-table">
+        <tr><th>Habit</th>${days.map(d=>`<th>${d}</th>`).join('')}</tr>
+        ${state.habits.map(h=>`
+          <tr>
+            <td>${h.name}</td>
+            ${h.week.map((v,i)=>`<td><span class="hcell ${v?'done':''}" data-hid="${h.id}" data-day="${i}">✓</span></td>`).join('')}
+          </tr>
+        `).join('')}
+      </table>
+      <div class="linkout" id="goHabit">Go to Habit Tracker →</div>
+    </div>
+  `);
+  card.querySelectorAll('.hcell').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const h = state.habits.find(x=>x.id==c.dataset.hid);
+      h.week[+c.dataset.day] = !h.week[+c.dataset.day];
+      render();
+    });
+  });
+  card.querySelector('#goHabit').addEventListener('click',()=>go('habits'));
+  return card;
+}
+
+function dashMealCard(){
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">MEAL TRACKER (Today)</span></h4>
+      ${state.meals.map(m=>`
+        <div class="meal-row">
+          <span class="mi">${m.icon}</span>
+          <span class="mtype">${m.type}</span>
+          <span class="mname">${m.name}</span>
+          <span class="chk ${m.done?'done':''}" data-id="${m.id}">✓</span>
+        </div>
+      `).join('')}
+      <div class="linkout" id="goMeal">Go to Meal Tracker →</div>
+    </div>
+  `);
+  card.querySelectorAll('.chk').forEach(c=>{
+    c.addEventListener('click',()=>{
+      const m = state.meals.find(x=>x.id==c.dataset.id);
+      m.done=!m.done;
+      render();
+    });
+  });
+  card.querySelector('#goMeal').addEventListener('click',()=>go('meals'));
+  return card;
+}
+
+function dashEventsCard(){
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">UPCOMING EVENTS</span></h4>
+      ${state.events.map(e=>`
+        <div class="event-row"><span class="ei">${e.icon}</span><span class="ename">${e.name}</span><span class="edate">${e.date}</span></div>
+      `).join('')}
+      <div class="linkout" id="goCal">Go to Calendar →</div>
+    </div>
+  `);
+  card.querySelector('#goCal').addEventListener('click',()=>go('calendar'));
+  return card;
+}
+
+function dashPrioritiesCard(){
+  const card = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">TOP 3 PRIORITIES</span></h4>
+      ${state.priorities.slice(0,3).map((p,i)=>`
+        <div class="prio-row"><span class="pnum">${i+1}</span><span class="pname">${p.text}</span><span class="${priorityClass(p.level)}">${p.level}</span></div>
+      `).join('')}
+      <div class="quote-box">"Small progress is still progress." Keep going! 🚀</div>
+    </div>
+  `);
+  return card;
+}
+
+/* ============================= GENERIC LIST PAGE BUILDER ============================= */
+// Used for: To-Do, Grocery, Notes, Journal, Skills, Internship, Earn Money, Events(Calendar), Priorities
+function genericListPage(opts){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">${opts.title}</h3>`));
+
+  const addRow = el(`<div class="add-row"></div>`);
+  opts.fields.forEach(f=>{
+    if(f.type==='select'){
+      const sel = el(`<select data-field="${f.name}">${f.options.map(o=>`<option value="${o}">${o}</option>`).join('')}</select>`);
+      addRow.appendChild(sel);
+    } else {
+      const inp = el(`<input type="${f.type||'text'}" placeholder="${f.placeholder}" data-field="${f.name}">`);
+      addRow.appendChild(inp);
+    }
+  });
+  const addBtn = el(`<button>+ Add</button>`);
+  addRow.appendChild(addBtn);
+  wrap.appendChild(addRow);
+
+  const listCard = el(`<div class="list-card"></div>`);
+  const items = opts.getItems();
+  if(items.length===0){
+    listCard.appendChild(el(`<div class="empty-state">Nothing here yet — add your first item above.</div>`));
+  } else {
+    items.forEach(item=>{
+      listCard.appendChild(opts.renderRow(item));
+    });
+  }
+  wrap.appendChild(listCard);
+
+  addBtn.addEventListener('click',()=>{
+    const values={};
+    let valid=true;
+    addRow.querySelectorAll('[data-field]').forEach(f=>{
+      values[f.dataset.field]=f.value;
+      if(f.tagName==='INPUT' && f.value.trim()==='' ) valid=false;
+    });
+    if(!valid){ toast('Please fill in the required field'); return; }
+    opts.onAdd(values);
+    addRow.querySelectorAll('input').forEach(f=>f.value='');
+    render();
+  });
+
+  return wrap;
+}
+
+function rowWithDelete(mainHtml, tagHtml, onDelete, done, onToggle){
+  const row = el(`
+    <div class="list-row">
+      ${onToggle? `<span class="chk ${done?'done':''}">✓</span>` : ''}
+      <span class="lmain ${done?'done':''}">${mainHtml}</span>
+      ${tagHtml?`<span class="ltag">${tagHtml}</span>`:''}
+      <button class="delbtn">✕</button>
+    </div>
+  `);
+  if(onToggle){ row.querySelector('.chk').addEventListener('click',onToggle); }
+  row.querySelector('.delbtn').addEventListener('click',onDelete);
+  return row;
+}
+
+/* ---- To-Do ---- */
+function pageTodo(){
+  return genericListPage({
+    title:'To-Do List',
+    fields:[
+      {name:'text',placeholder:'What needs to get done?'},
+      {name:'priority',type:'select',options:['High','Medium','Low']},
+    ],
+    getItems:()=>state.todos,
+    onAdd:(v)=>state.todos.unshift({id:nid(),text:v.text,priority:v.priority,done:false}),
+    renderRow:(t)=>rowWithDelete(t.text, t.priority,
+      ()=>{state.todos=state.todos.filter(x=>x.id!==t.id);render();},
+      t.done,
+      ()=>{t.done=!t.done;render();}
+    )
+  });
+}
+
+/* ---- Grocery ---- */
+function pageGrocery(){
+  return genericListPage({
+    title:'Grocery List',
+    fields:[
+      {name:'name',placeholder:'Item name'},
+      {name:'qty',placeholder:'Quantity (e.g. 1 kg)'},
+    ],
+    getItems:()=>state.grocery,
+    onAdd:(v)=>state.grocery.unshift({id:nid(),name:v.name,qty:v.qty||'-',bought:false}),
+    renderRow:(g)=>rowWithDelete(g.name, g.qty,
+      ()=>{state.grocery=state.grocery.filter(x=>x.id!==g.id);render();},
+      g.bought,
+      ()=>{g.bought=!g.bought;render();}
+    )
+  });
+}
+
+/* ---- Notes ---- */
+function pageNotes(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Notes</h3>`));
+  const addRow = el(`
+    <div class="add-row" style="flex-direction:column;align-items:stretch;">
+      <input type="text" placeholder="Note title" id="noteTitle">
+      <textarea class="note-area" placeholder="Write your note..." id="noteText"></textarea>
+      <button id="noteAddBtn" style="align-self:flex-start;">+ Add Note</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const listCard = el(`<div class="list-card"></div>`);
+  if(state.notes.length===0){
+    listCard.appendChild(el(`<div class="empty-state">No notes yet — capture your first idea above.</div>`));
+  } else {
+    state.notes.forEach(n=>{
+      const row = el(`
+        <div class="journal-entry">
+          <div class="jdate">${n.title}</div>
+          <div class="jtext">${n.text}</div>
+        </div>
+      `);
+      const del = el(`<button class="delbtn" style="float:right;">✕ delete</button>`);
+      del.addEventListener('click',()=>{state.notes=state.notes.filter(x=>x.id!==n.id);render();});
+      row.appendChild(del);
+      listCard.appendChild(row);
+    });
+  }
+  wrap.appendChild(listCard);
+  addRow.querySelector('#noteAddBtn').addEventListener('click',()=>{
+    const t=addRow.querySelector('#noteTitle').value.trim();
+    const x=addRow.querySelector('#noteText').value.trim();
+    if(!t){toast('Please add a title');return;}
+    state.notes.unshift({id:nid(),title:t,text:x});
+    render();
+  });
+  return wrap;
+}
+
+/* ---- Journal ---- */
+function pageJournal(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Journal</h3>`));
+  const addRow = el(`
+    <div class="add-row" style="flex-direction:column;align-items:stretch;">
+      <textarea class="note-area" placeholder="How was your day?" id="jrText"></textarea>
+      <button id="jrAddBtn" style="align-self:flex-start;">+ Add Entry</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const listCard = el(`<div class="list-card"></div>`);
+  if(state.journal.length===0){
+    listCard.appendChild(el(`<div class="empty-state">No entries yet — write about your day above.</div>`));
+  } else {
+    state.journal.forEach(j=>{
+      const row = el(`<div class="journal-entry"><div class="jdate">${j.date}</div><div class="jtext">${j.text}</div></div>`);
+      const del = el(`<button class="delbtn" style="float:right;">✕ delete</button>`);
+      del.addEventListener('click',()=>{state.journal=state.journal.filter(x=>x.id!==j.id);render();});
+      row.appendChild(del);
+      listCard.appendChild(row);
+    });
+  }
+  wrap.appendChild(listCard);
+  addRow.querySelector('#jrAddBtn').addEventListener('click',()=>{
+    const t = addRow.querySelector('#jrText').value.trim();
+    if(!t){toast('Write something first');return;}
+    const d = new Date();
+    state.journal.unshift({id:nid(),date:d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}),text:t});
+    render();
+  });
+  return wrap;
+}
+
+/* ---- Skill Progress ---- */
+function pageSkills(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Skill Progress</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Skill name" id="skName">
+      <input type="number" placeholder="Progress %" min="0" max="100" id="skProg" style="width:120px;">
+      <button id="skAdd">+ Add Skill</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const card = el(`<div class="card"></div>`);
+  if(state.skills.length===0){
+    card.appendChild(el(`<div class="empty-state">Add a skill to start tracking progress.</div>`));
+  } else {
+    state.skills.forEach(s=>{
+      const row = el(`
+        <div class="progress-item">
+          <div class="pi-top"><span class="nm">${s.name}</span><span class="pc">${s.progress}% <button class="delbtn" data-id="${s.id}">✕</button></span></div>
+          <div class="bar-track"><div class="bar-fill" style="width:${s.progress}%;background:var(--purple)"></div></div>
+        </div>
+      `);
+      row.querySelector('.delbtn').addEventListener('click',()=>{state.skills=state.skills.filter(x=>x.id!==s.id);render();});
+      card.appendChild(row);
+    });
+  }
+  wrap.appendChild(card);
+  addRow.querySelector('#skAdd').addEventListener('click',()=>{
+    const n=addRow.querySelector('#skName').value.trim();
+    const p=Math.max(0,Math.min(100,parseInt(addRow.querySelector('#skProg').value)||0));
+    if(!n){toast('Enter a skill name');return;}
+    state.skills.unshift({id:nid(),name:n,progress:p});
+    render();
+  });
+  return wrap;
+}
+
+/* ---- Internship Tracker ---- */
+function pageInternship(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Internship Tracker</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Company name" id="icCompany">
+      <input type="text" placeholder="Role" id="icRole">
+      <select id="icStatus">
+        <option>Applied</option><option>Interview</option><option>Offer</option><option>Rejected</option>
+      </select>
+      <input type="text" placeholder="Deadline (e.g. 22 May)" id="icDeadline">
+      <button id="icAdd">+ Add</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const listCard = el(`<div class="list-card"></div>`);
+  if(state.internships.length===0){
+    listCard.appendChild(el(`<div class="empty-state">No applications tracked yet.</div>`));
+  } else {
+    state.internships.forEach(i=>{
+      const row = el(`
+        <div class="list-row">
+          <span class="lmain"><b>${i.company}</b> — ${i.role}</span>
+          <span class="ltag">${i.status}</span>
+          <span style="color:var(--muted);font-size:12px;">${i.deadline}</span>
+          <button class="delbtn">✕</button>
+        </div>
+      `);
+      row.querySelector('.delbtn').addEventListener('click',()=>{state.internships=state.internships.filter(x=>x.id!==i.id);render();});
+      listCard.appendChild(row);
+    });
+  }
+  wrap.appendChild(listCard);
+  addRow.querySelector('#icAdd').addEventListener('click',()=>{
+    const c=addRow.querySelector('#icCompany').value.trim();
+    const r=addRow.querySelector('#icRole').value.trim();
+    const s=addRow.querySelector('#icStatus').value;
+    const d=addRow.querySelector('#icDeadline').value.trim()||'-';
+    if(!c||!r){toast('Enter company and role');return;}
+    state.internships.unshift({id:nid(),company:c,role:r,status:s,deadline:d});
+    render();
+  });
+  return wrap;
+}
+
+/* ---- Earn Money Tracker ---- */
+function pageEarn(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Earn Money Tracker</h3>`));
+  const total = state.earnings.reduce((a,e)=>a+Number(e.amount),0);
+  wrap.appendChild(el(`
+    <div class="kpi-row">
+      <div class="kpi"><div class="k-label">Total Earned</div><div class="k-val">${fmt(total)}</div></div>
+      <div class="kpi"><div class="k-label">Entries</div><div class="k-val">${state.earnings.length}</div></div>
+    </div>
+  `));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Source (e.g. Freelance)" id="erSource">
+      <input type="number" placeholder="Amount ₹" id="erAmount" style="width:130px;">
+      <input type="text" placeholder="Date (e.g. 14 May)" id="erDate">
+      <button id="erAdd">+ Add</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const listCard = el(`<div class="list-card"></div>`);
+  if(state.earnings.length===0){
+    listCard.appendChild(el(`<div class="empty-state">No earnings logged yet.</div>`));
+  } else {
+    state.earnings.forEach(e=>{
+      const row = el(`
+        <div class="list-row">
+          <span class="lmain">${e.source}</span>
+          <span class="ltag" style="color:var(--green)">${fmt(e.amount)}</span>
+          <span style="color:var(--muted);font-size:12px;">${e.date}</span>
+          <button class="delbtn">✕</button>
+        </div>
+      `);
+      row.querySelector('.delbtn').addEventListener('click',()=>{state.earnings=state.earnings.filter(x=>x.id!==e.id);render();});
+      listCard.appendChild(row);
+    });
+  }
+  wrap.appendChild(listCard);
+  addRow.querySelector('#erAdd').addEventListener('click',()=>{
+    const s=addRow.querySelector('#erSource').value.trim();
+    const a=parseFloat(addRow.querySelector('#erAmount').value)||0;
+    const d=addRow.querySelector('#erDate').value.trim()||'-';
+    if(!s||a<=0){toast('Enter a source and amount');return;}
+    state.earnings.unshift({id:nid(),source:s,amount:a,date:d});
+    render();
+  });
+  return wrap;
+}
+
+/* ---- Master Calendar (events) ---- */
+function pageCalendar(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Master Calendar</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Event name" id="evName">
+      <input type="text" placeholder="Date (e.g. 30 May)" id="evDate">
+      <button id="evAdd">+ Add Event</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const listCard = el(`<div class="list-card"></div>`);
+  const sorted = state.events;
+  if(sorted.length===0){
+    listCard.appendChild(el(`<div class="empty-state">No upcoming events.</div>`));
+  } else {
+    sorted.forEach(e=>{
+      const row = el(`
+        <div class="event-row"><span class="ei">${e.icon}</span><span class="ename">${e.name}</span><span class="edate">${e.date}</span><button class="delbtn">✕</button></div>
+      `);
+      row.querySelector('.delbtn').addEventListener('click',()=>{state.events=state.events.filter(x=>x.id!==e.id);render();});
+      listCard.appendChild(row);
+    });
+  }
+  wrap.appendChild(listCard);
+  addRow.querySelector('#evAdd').addEventListener('click',()=>{
+    const n=addRow.querySelector('#evName').value.trim();
+    const d=addRow.querySelector('#evDate').value.trim();
+    if(!n||!d){toast('Enter event name and date');return;}
+    state.events.push({id:nid(),icon:'📌',name:n,date:d});
+    render();
+  });
+  return wrap;
+}
+
+/* ============================= PAGE: DAILY SCHEDULE ============================= */
+function pageSchedule(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Daily Schedule</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Time (e.g. 5:00 PM)" id="scTime" style="width:130px;">
+      <input type="text" placeholder="Task" id="scTask">
+      <select id="scCat"><option>Personal</option><option>Study</option><option>Health</option><option>Work</option></select>
+      <select id="scPri"><option>High</option><option>Medium</option><option>Low</option></select>
+      <button id="scAdd">+ Add Task</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const card = el(`<div class="card"></div>`);
+  card.appendChild(el(`
+    <table class="tsk">
+      <tr><th>Time</th><th>Task</th><th>Category</th><th>Priority</th><th>Status</th><th></th></tr>
+    </table>
+  `));
+  const table = card.querySelector('table');
+  state.schedule.forEach(s=>{
+    const tr = el(`
+      <tr>
+        <td>${s.time}</td>
+        <td>${s.task}</td>
+        <td style="color:var(--blue)">${s.category}</td>
+        <td class="${priorityClass(s.priority)}">${s.priority}</td>
+        <td><span class="chk ${s.done?'done':''}" data-id="${s.id}">✓</span></td>
+        <td><button class="delbtn" data-del="${s.id}">✕</button></td>
+      </tr>
+    `);
+    tr.querySelector('.chk').addEventListener('click',()=>{s.done=!s.done;render();});
+    tr.querySelector('[data-del]').addEventListener('click',()=>{state.schedule=state.schedule.filter(x=>x.id!==s.id);render();});
+    table.appendChild(tr);
+  });
+  wrap.appendChild(card);
+  addRow.querySelector('#scAdd').addEventListener('click',()=>{
+    const t=addRow.querySelector('#scTime').value.trim();
+    const task=addRow.querySelector('#scTask').value.trim();
+    const cat=addRow.querySelector('#scCat').value;
+    const pri=addRow.querySelector('#scPri').value;
+    if(!t||!task){toast('Enter time and task');return;}
+    state.schedule.push({id:nid(),time:t,task,category:cat,priority:pri,done:false});
+    render();
+  });
+  return wrap;
+}
+
+/* ============================= PAGE: WEEKLY STUDY PLAN ============================= */
+function pageStudyPlan(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Weekly Study Plan</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Subject" id="spSub">
+      <input type="number" placeholder="Progress %" min="0" max="100" id="spProg" style="width:120px;">
+      <select id="spColor">${Object.keys(COLORS).map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
+      <button id="spAdd">+ Add Subject</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+
+  const overall = Math.round(state.studyplan.reduce((a,s)=>a+s.progress,0)/(state.studyplan.length||1));
+  const grid = el(`<div class="grid2"></div>`);
+  const left = el(`<div class="card"></div>`);
+  const segs = state.studyplan.map(s=>({value:s.progress,color:COLORS[s.color]}));
+  left.appendChild(el(`
+    <h4><span class="label" style="color:var(--purple)">OVERALL PROGRESS</span></h4>
+    <div class="donut-wrap">
+      <div class="donut" style="background:${conicGradient(segs)}"><div class="hole"><b>${overall}%</b><span>Overall</span></div></div>
+      <div class="legend">${state.studyplan.map(s=>`<div class="legend-row"><span><span class="dot" style="background:${COLORS[s.color]}"></span>${s.subject}</span><b>${s.progress}%</b></div>`).join('')}</div>
+    </div>
+  `));
+  grid.appendChild(left);
+
+  const right = el(`<div class="card"></div>`);
+  right.appendChild(el(`<h4><span class="label" style="color:var(--purple)">SUBJECTS</span></h4>`));
+  state.studyplan.forEach(s=>{
+    const row = el(`
+      <div class="progress-item">
+        <div class="pi-top"><span class="nm">${s.subject}</span><span class="pc">${s.progress}% <button class="delbtn" data-id="${s.id}">✕</button></span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${s.progress}%;background:${COLORS[s.color]}"></div></div>
+      </div>
+    `);
+    row.querySelector('.delbtn').addEventListener('click',()=>{state.studyplan=state.studyplan.filter(x=>x.id!==s.id);render();});
+    right.appendChild(row);
+  });
+  grid.appendChild(right);
+  wrap.appendChild(grid);
+
+  addRow.querySelector('#spAdd').addEventListener('click',()=>{
+    const sub=addRow.querySelector('#spSub').value.trim();
+    const prog=Math.max(0,Math.min(100,parseInt(addRow.querySelector('#spProg').value)||0));
+    const col=addRow.querySelector('#spColor').value;
+    if(!sub){toast('Enter a subject name');return;}
+    state.studyplan.push({id:nid(),subject:sub,progress:prog,color:col});
+    render();
+  });
+  return wrap;
+}
+
+/* ============================= PAGE: HABIT TRACKER ============================= */
+function pageHabits(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Habit Tracker</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="New habit (e.g. Meditate)" id="hbName">
+      <button id="hbAdd">+ Add Habit</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const days=['M','T','W','T','F','S','S'];
+  const card = el(`<div class="card"></div>`);
+  card.appendChild(el(`
+    <table class="habit-table">
+      <tr><th>Habit</th>${days.map(d=>`<th>${d}</th>`).join('')}<th></th></tr>
+    </table>
+  `));
+  const table = card.querySelector('table');
+  state.habits.forEach(h=>{
+    const tr = el(`
+      <tr>
+        <td>${h.name}</td>
+        ${h.week.map((v,i)=>`<td><span class="hcell ${v?'done':''}" data-hid="${h.id}" data-day="${i}">✓</span></td>`).join('')}
+        <td><button class="delbtn" data-del="${h.id}">✕</button></td>
+      </tr>
+    `);
+    tr.querySelectorAll('.hcell').forEach(c=>{
+      c.addEventListener('click',()=>{h.week[+c.dataset.day]=!h.week[+c.dataset.day];render();});
+    });
+    tr.querySelector('[data-del]').addEventListener('click',()=>{state.habits=state.habits.filter(x=>x.id!==h.id);render();});
+    table.appendChild(tr);
+  });
+  wrap.appendChild(card);
+  addRow.querySelector('#hbAdd').addEventListener('click',()=>{
+    const n=addRow.querySelector('#hbName').value.trim();
+    if(!n){toast('Enter a habit name');return;}
+    state.habits.push({id:nid(),name:n,week:[false,false,false,false,false,false,false]});
+    render();
+  });
+  return wrap;
+}
+
+/* ============================= PAGE: MEAL TRACKER ============================= */
+function pageMeals(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Meal Tracker</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <select id="mlType"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snacks</option><option>Water</option></select>
+      <input type="text" placeholder="What did you eat?" id="mlName">
+      <button id="mlAdd">+ Add Meal</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const icons={Breakfast:'🍳',Lunch:'🥗',Dinner:'🍲',Snacks:'🍌',Water:'💧'};
+  const card = el(`<div class="card"></div>`);
+  state.meals.forEach(m=>{
+    const row = el(`
+      <div class="meal-row">
+        <span class="mi">${m.icon}</span>
+        <span class="mtype">${m.type}</span>
+        <span class="mname">${m.name}</span>
+        <span class="chk ${m.done?'done':''}" data-id="${m.id}">✓</span>
+        <button class="delbtn" data-del="${m.id}">✕</button>
+      </div>
+    `);
+    row.querySelector('.chk').addEventListener('click',()=>{m.done=!m.done;render();});
+    row.querySelector('[data-del]').addEventListener('click',()=>{state.meals=state.meals.filter(x=>x.id!==m.id);render();});
+    card.appendChild(row);
+  });
+  wrap.appendChild(card);
+  addRow.querySelector('#mlAdd').addEventListener('click',()=>{
+    const type=addRow.querySelector('#mlType').value;
+    const name=addRow.querySelector('#mlName').value.trim();
+    if(!name){toast('Enter meal details');return;}
+    state.meals.push({id:nid(),type,icon:icons[type]||'🍽️',name,done:false});
+    render();
+  });
+  return wrap;
+}
+
+/* ============================= PAGE: FINANCE TRACKER ============================= */
+function pageFinance(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Finance Tracker</h3>`));
+  const f = state.finance;
+  wrap.appendChild(el(`
+    <div class="kpi-row">
+      <div class="kpi"><div class="k-label">Income</div><div class="k-val" style="color:var(--green)">${fmt(f.income)}</div></div>
+      <div class="kpi"><div class="k-label">Expenses</div><div class="k-val" style="color:var(--red)">${fmt(f.expenses)}</div></div>
+      <div class="kpi"><div class="k-label">Savings</div><div class="k-val" style="color:var(--blue)">${fmt(f.savings)}</div></div>
+      <div class="kpi"><div class="k-label">Budget Left</div><div class="k-val" style="color:var(--yellow)">${fmt(f.budgetLeft)}</div></div>
+    </div>
+  `));
+
+  const grid = el(`<div class="grid2"></div>`);
+  const segs = f.expenseCategories.map(c=>({value:c.amount,color:COLORS[c.color]}));
+  const total = f.expenseCategories.reduce((a,c)=>a+c.amount,0);
+  const left = el(`<div class="card"></div>`);
+  left.appendChild(el(`
+    <h4><span class="label" style="color:var(--purple)">EXPENSES BREAKDOWN</span></h4>
+    <div class="donut-wrap">
+      <div class="donut" style="background:${conicGradient(segs)}"><div class="hole"><b>${fmt(total)}</b><span>Total</span></div></div>
+      <div class="legend">${f.expenseCategories.map(c=>`<div class="legend-row"><span><span class="dot" style="background:${COLORS[c.color]}"></span>${c.name}</span><b>${fmt(c.amount)}</b></div>`).join('')}</div>
+    </div>
+  `));
+  grid.appendChild(left);
+
+  const right = el(`<div class="card"></div>`);
+  right.appendChild(el(`<h4><span class="label" style="color:var(--purple)">TRANSACTIONS</span></h4>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Description" id="txDesc">
+      <input type="number" placeholder="Amount ₹" id="txAmt" style="width:120px;">
+      <select id="txType"><option value="expense">Expense</option><option value="income">Income</option></select>
+      <button id="txAdd">+ Add</button>
+    </div>
+  `);
+  right.appendChild(addRow);
+  const listCard = el(`<div class="list-card"></div>`);
+  if(f.transactions.length===0){
+    listCard.appendChild(el(`<div class="empty-state">No transactions yet.</div>`));
+  } else {
+    f.transactions.slice().reverse().forEach(t=>{
+      const row = el(`
+        <div class="list-row">
+          <span class="lmain">${t.desc}</span>
+          <span class="ltag" style="color:${t.type==='income'?'var(--green)':'var(--red)'}">${t.type==='income'?'+':'-'}${fmt(t.amount)}</span>
+          <button class="delbtn">✕</button>
+        </div>
+      `);
+      row.querySelector('.delbtn').addEventListener('click',()=>{
+        f.transactions=f.transactions.filter(x=>x.id!==t.id);
+        recalcFinance();
+        render();
+      });
+      listCard.appendChild(row);
+    });
+  }
+  right.appendChild(listCard);
+  grid.appendChild(right);
+  wrap.appendChild(grid);
+
+  addRow.querySelector('#txAdd').addEventListener('click',()=>{
+    const d=addRow.querySelector('#txDesc').value.trim();
+    const a=parseFloat(addRow.querySelector('#txAmt').value)||0;
+    const ty=addRow.querySelector('#txType').value;
+    if(!d||a<=0){toast('Enter description and amount');return;}
+    f.transactions.push({id:nid(),desc:d,amount:a,type:ty});
+    recalcFinance();
+    render();
+  });
+
+  return wrap;
+}
+function recalcFinance(){
+  const f = state.finance;
+  const income = f.transactions.filter(t=>t.type==='income').reduce((a,t)=>a+Number(t.amount),0);
+  const expenses = f.transactions.filter(t=>t.type==='expense').reduce((a,t)=>a+Number(t.amount),0);
+  f.income = income || f.income;
+  f.expenses = expenses;
+  f.savings = Math.max(0, f.income - f.expenses);
+  f.budgetLeft = f.savings;
+}
+
+/* ============================= PAGE: SAVINGS GOALS ============================= */
+function pageSavings(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Savings Goals</h3>`));
+  const addRow = el(`
+    <div class="add-row">
+      <input type="text" placeholder="Goal name" id="sgName">
+      <input type="number" placeholder="Saved ₹" id="sgSaved" style="width:120px;">
+      <input type="number" placeholder="Target ₹" id="sgTarget" style="width:120px;">
+      <button id="sgAdd">+ Add Goal</button>
+    </div>
+  `);
+  wrap.appendChild(addRow);
+  const card = el(`<div class="card"></div>`);
+  state.savingsGoals.forEach(g=>{
+    const row = el(`
+      <div class="goal-row">
+        <div class="grow"><span>${g.name}</span><span class="pc">${fmt(g.saved)} / ${fmt(g.target)} · ${Math.round(g.saved/g.target*100)}% <button class="delbtn" data-id="${g.id}">✕</button></span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.min(100,g.saved/g.target*100)}%;background:var(--green)"></div></div>
+      </div>
+    `);
+    row.querySelector('.delbtn').addEventListener('click',()=>{state.savingsGoals=state.savingsGoals.filter(x=>x.id!==g.id);render();});
+    card.appendChild(row);
+  });
+  wrap.appendChild(card);
+  addRow.querySelector('#sgAdd').addEventListener('click',()=>{
+    const n=addRow.querySelector('#sgName').value.trim();
+    const s=parseFloat(addRow.querySelector('#sgSaved').value)||0;
+    const t=parseFloat(addRow.querySelector('#sgTarget').value)||1;
+    if(!n){toast('Enter a goal name');return;}
+    state.savingsGoals.push({id:nid(),name:n,saved:s,target:t});
+    render();
+  });
+  return wrap;
+}
+
+/* ============================= PAGE: SETTINGS ============================= */
+function pageSettings(){
+  const wrap = el(`<div></div>`);
+  wrap.appendChild(el(`<h3 class="page-title">Settings</h3>`));
+  const grid = el(`<div class="settings-grid"></div>`);
+
+  const profileCard = el(`
+    <div class="card">
+      <h4><span class="label" style="color:var(--purple)">PROFILE</span></h4>
+      <div class="add-row" style="margin-bottom:0;">
+        <input type="text" id="setName" value="${state.userName}" placeholder="Your name">
+        <button id="setNameBtn">Save</button>
+      </div>
+    </div>
+  `);
+  profileCard.querySelector('#setNameBtn').addEventListener('click',()=>{
+    const v = profileCard.querySelector('#setName').value.trim();
+    if(v){ state.userName = v; toast('Profile updated'); render(); }
+  });
+  grid.appendChild(profileCard);
+
+  const prefsCard = el(`<div class="card"><h4><span class="label" style="color:var(--purple)">PREFERENCES</span></h4></div>`);
+  const prefs = [
+    {key:'darkMode',label:'Dark Mode'},
+    {key:'notifications',label:'Notifications'},
+    {key:'focusReminders',label:'Focus Reminders'},
+    {key:'weekStartsMonday',label:'Week Starts on Monday'},
+  ];
+  prefs.forEach(p=>{
+    const row = el(`
+      <div class="setting-row">
+        <span>${p.label}</span>
+        <div class="toggle ${state.settings[p.key]?'on':''}" data-key="${p.key}"><div class="knob"></div></div>
+      </div>
+    `);
+    row.querySelector('.toggle').addEventListener('click',function(){
+      state.settings[p.key] = !state.settings[p.key];
+      this.classList.toggle('on');
+    });
+    prefsCard.appendChild(row);
+  });
+  grid.appendChild(prefsCard);
+
+  wrap.appendChild(grid);
+
+  const dangerCard = el(`
+    <div class="card" style="margin-top:16px;">
+      <h4><span class="label" style="color:var(--purple)">DATA</span></h4>
+      <p style="color:var(--muted);font-size:12.5px;margin:0 0 12px 0;">This is a live in-browser demo — your changes exist for this session. Reset to restore the original sample data.</p>
+      <button class="focus-btn" style="width:auto;padding:9px 18px;" id="resetBtn">Reset All Data</button>
+    </div>
+  `);
+  dangerCard.querySelector('#resetBtn').addEventListener('click',()=>{
+    if(confirm('Reset all data back to the sample demo?')){
+      location.reload();
+    }
+  });
+  wrap.appendChild(dangerCard);
+
+  return wrap;
+}
+
+/* ============================= ROUTER ============================= */
+function pageBody(){
+  switch(state.page){
+    case 'dashboard': return pageDashboard();
+    case 'schedule': return pageSchedule();
+    case 'todo': return pageTodo();
+    case 'studyplan': return pageStudyPlan();
+    case 'habits': return pageHabits();
+    case 'meals': return pageMeals();
+    case 'grocery': return pageGrocery();
+    case 'finance': return pageFinance();
+    case 'savings': return pageSavings();
+    case 'skills': return pageSkills();
+    case 'internship': return pageInternship();
+    case 'earn': return pageEarn();
+    case 'calendar': return pageCalendar();
+    case 'journal': return pageJournal();
+    case 'notes': return pageNotes();
+    case 'settings': return pageSettings();
+    default: return pageDashboard();
+  }
+}
+
+function render(){
+  renderSidebar();
+  renderBottomNav();
+  const main = document.getElementById('main');
+  main.innerHTML='';
+  main.appendChild(pageBody());
+}
+
+render();
+</script>
+</body>
+</html>
