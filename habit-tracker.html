@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Habit Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161f1b;
+    --surface:#1e2a24;
+    --surface-2:#25342c;
+    --line: rgba(232,228,217,0.10);
+    --parchment:#e8e4d9;
+    --muted:#8a9690;
+    --brass:#c9a227;
+    --sage:#6b8f71;
+    --sage-dim: rgba(107,143,113,0.18);
+    --error:#c96a4a;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--ink);
+    color: var(--parchment);
+    font-family: 'Inter', sans-serif;
+    min-height:100vh;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(107,143,113,0.06), transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(201,162,39,0.05), transparent 45%);
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; margin:0; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  button{ font-family:'Inter', sans-serif; cursor:pointer; }
+  ::selection{ background: var(--brass); color:#1b1b1b; }
+
+  /* ---------- Auth screen ---------- */
+  #auth-screen{
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .auth-card{
+    width:100%; max-width:380px; background:var(--surface); border:1px solid var(--line);
+    border-radius:14px; padding:40px 32px; position:relative; overflow:hidden;
+  }
+  .auth-card::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:3px;
+    background: linear-gradient(90deg, var(--brass), var(--sage));
+  }
+  .brand{ display:flex; align-items:baseline; gap:10px; margin-bottom:6px; }
+  .brand .mark{
+    width:30px;height:30px;border-radius:50%;border:2px solid var(--brass);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;
+    font-size:15px; color:var(--brass); flex-shrink:0;
+  }
+  .brand h1{ font-size:24px; letter-spacing:0.3px; }
+  .tagline{ color:var(--muted); font-size:13px; margin:0 0 28px 0; }
+  .field{ margin-bottom:16px; }
+  .field label{ display:block; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px; }
+  .field input{
+    width:100%; padding:11px 13px; background:var(--surface-2); border:1px solid var(--line);
+    border-radius:7px; color:var(--parchment); font-size:14px; outline:none; transition:border-color .15s;
+  }
+  .field input:focus{ border-color: var(--sage); }
+  .auth-submit{
+    width:100%; padding:12px; margin-top:6px; background:var(--brass); color:#1b1b1b; border:none;
+    border-radius:7px; font-weight:600; font-size:14px; letter-spacing:0.02em;
+  }
+  .auth-submit:hover{ filter:brightness(1.08); }
+  .auth-switch{ text-align:center; margin-top:18px; font-size:13px; color:var(--muted); }
+  .auth-switch button{ background:none; border:none; color:var(--sage); font-weight:600; padding:0; font-size:13px; }
+  .auth-error{ color:var(--error); font-size:12.5px; margin-top:4px; min-height:16px; }
+  .auth-hint{ font-size:11px; color:var(--muted); margin-top:22px; line-height:1.5; border-top:1px solid var(--line); padding-top:14px; }
+
+  /* ---------- App shell ---------- */
+  #app-screen{ display:none; max-width:960px; margin:0 auto; padding:28px 20px 80px; }
+  header.top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:30px; }
+  .brand-row{ display:flex; align-items:center; gap:10px; }
+  .greeting{ color:var(--muted); font-size:13px; }
+  .greeting b{ color:var(--parchment); }
+  #logout-btn{
+    background:transparent; border:1px solid var(--line); color:var(--muted); padding:8px 14px;
+    border-radius:7px; font-size:12.5px;
+  }
+  #logout-btn:hover{ border-color:var(--sage); color:var(--parchment); }
+
+  .panel{
+    background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:24px; margin-bottom:24px;
+  }
+  .panel-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px;}
+  .panel-head h2{ font-size:19px; }
+  .eyebrow{ font-size:10.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--brass); margin-bottom:4px; display:block; }
+
+  /* Add habit */
+  .add-row{ display:flex; gap:8px; }
+  .add-row input{
+    flex:1; padding:10px 13px; background:var(--surface-2); border:1px solid var(--line);
+    border-radius:7px; color:var(--parchment); font-size:14px; outline:none;
+  }
+  .add-row input:focus{ border-color:var(--sage); }
+  .add-row button{
+    padding:10px 18px; background:var(--sage); color:#0f1512; border:none; border-radius:7px; font-weight:600; font-size:13.5px;
+  }
+  .add-row button:hover{ filter:brightness(1.1); }
+
+  /* Week nav */
+  .week-nav{ display:flex; align-items:center; gap:12px; }
+  .week-nav button{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--parchment);
+    width:30px; height:30px; border-radius:6px; font-size:15px; display:flex; align-items:center; justify-content:center;
+  }
+  .week-nav button:hover{ border-color:var(--sage); }
+  .week-label{ font-size:13px; color:var(--muted); min-width:150px; text-align:center; }
+
+  /* Week table */
+  .week-table{ width:100%; border-collapse:separate; border-spacing:0; }
+  .week-table th{
+    font-weight:500; font-size:11.5px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;
+    padding:8px 6px; text-align:center;
+  }
+  .week-table th.habit-col{ text-align:left; }
+  .week-table th .daynum{ display:block; font-family:'IBM Plex Mono',monospace; color:var(--parchment); font-size:14px; margin-top:2px; }
+  .week-table th.today .daynum{ color:var(--brass); }
+  .week-table td{ padding:9px 6px; text-align:center; border-top:1px solid var(--line); }
+  .week-table td.habit-name{ text-align:left; font-size:14px; padding-left:4px; }
+  .habit-name .del-habit{
+    background:none; border:none; color:var(--muted); font-size:12px; margin-left:8px; opacity:0.5;
+  }
+  .habit-name .del-habit:hover{ opacity:1; color:var(--error); }
+
+  .chk{
+    width:22px; height:22px; border-radius:6px; border:1.5px solid var(--line); background:var(--surface-2);
+    display:inline-flex; align-items:center; justify-content:center; position:relative; transition:all .15s;
+  }
+  .chk:hover{ border-color:var(--sage); }
+  .chk.checked{ background:var(--sage); border-color:var(--sage); }
+  .chk.checked::after{
+    content:"✓"; color:#0f1512; font-size:13px; font-weight:700;
+  }
+  .chk.future{ opacity:0.35; cursor:not-allowed; }
+
+  .empty-state{ text-align:center; padding:36px 10px; color:var(--muted); }
+  .empty-state .mark-big{ font-size:26px; color:var(--brass); margin-bottom:10px; }
+  .empty-state p{ font-size:13.5px; margin:4px 0 0; line-height:1.5; }
+
+  /* Calendar */
+  .cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+  .cal-nav{ display:flex; gap:8px; align-items:center; }
+  .cal-nav button{
+    background:var(--surface-2); border:1px solid var(--line); color:var(--parchment);
+    width:28px; height:28px; border-radius:6px; font-size:14px;
+  }
+  .cal-nav button:hover{ border-color:var(--sage); }
+  .cal-month-label{ font-size:14px; min-width:130px; text-align:center; color:var(--parchment); font-family:'Fraunces',serif; }
+  .cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:6px; }
+  .cal-dow{ text-align:center; font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; padding-bottom:4px; }
+  .cal-cell{
+    aspect-ratio:1; border-radius:7px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:'IBM Plex Mono',monospace; font-size:12px; border:1px solid transparent; cursor:pointer; position:relative;
+  }
+  .cal-cell.pad{ visibility:hidden; }
+  .cal-cell.selected{ border-color:var(--brass); }
+  .cal-cell .dot{ width:5px; height:5px; border-radius:50%; margin-top:3px; background:transparent; }
+  .cal-cell.future{ opacity:0.3; cursor:default; }
+  .cal-cell.today{ font-weight:700; }
+  .cal-legend{ display:flex; gap:14px; align-items:center; margin-top:16px; font-size:11px; color:var(--muted); flex-wrap:wrap; }
+  .legend-swatch{ width:11px; height:11px; border-radius:3px; display:inline-block; margin-right:5px; vertical-align:-1px; }
+
+  /* Selected day detail */
+  .day-detail-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:14px; }
+  .day-detail-date{ font-size:13px; color:var(--muted); }
+  .day-progress-pill{
+    font-size:11.5px; font-family:'IBM Plex Mono',monospace; padding:3px 10px; border-radius:20px;
+    background:var(--sage-dim); color:var(--sage); border:1px solid rgba(107,143,113,0.3);
+  }
+  .day-list{ display:flex; flex-direction:column; gap:8px; }
+  .day-item{
+    display:flex; align-items:center; gap:12px; padding:10px 12px; background:var(--surface-2);
+    border-radius:8px; border:1px solid var(--line);
+  }
+  .day-item span{ font-size:14px; }
+
+  footer.note{ text-align:center; color:var(--muted); font-size:11px; margin-top:8px; line-height:1.6; }
+
+  @media (max-width:640px){
+    .week-table th, .week-table td{ padding:7px 3px; font-size:12px; }
+    .week-label{ min-width:110px; font-size:12px; }
+    .panel{ padding:18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="brand"><span class="mark">L</span><h1>Ledger</h1></div>
+    <p class="tagline">A quiet place to keep your streaks.</p>
+
+    <form id="auth-form">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" type="text" autocomplete="username" placeholder="e.g. vedu">
+      </div>
+      <div class="field" id="confirm-field" style="display:none;">
+        <label for="password2">Confirm password</label>
+        <input id="password2" type="password" autocomplete="new-password" placeholder="••••••••">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="••••••••">
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+      <button type="submit" class="auth-submit" id="auth-submit-btn">Log in</button>
+    </form>
+
+    <div class="auth-switch">
+      <span id="switch-text">New here?</span>
+      <button type="button" id="switch-btn">Create an account</button>
+    </div>
+
+    <div class="auth-hint">Accounts and progress are stored in this artifact's database, scoped by username. This is a lightweight demo login, not bank-grade security — don't reuse a real password.</div>
+  </div>
+</div>
+
+<!-- ============ APP SCREEN ============ -->
+<div id="app-screen">
+  <header class="top">
+    <div class="brand-row">
+      <span class="mark" style="width:26px;height:26px;border-radius:50%;border:2px solid var(--brass);display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:13px;color:var(--brass);">L</span>
+      <div>
+        <h1 style="font-size:18px;">Ledger</h1>
+        <div class="greeting">Welcome back, <b id="user-name-label"></b></div>
+      </div>
+    </div>
+    <button id="logout-btn">Log out</button>
+  </header>
+
+  <!-- Add habit -->
+  <div class="panel">
+    <span class="eyebrow">Habits</span>
+    <div class="panel-head"><h2>Track something new</h2></div>
+    <div class="add-row">
+      <input id="new-habit-input" type="text" placeholder="e.g. Drink 2L water, Read 20 pages, Sleep by 11pm" maxlength="60">
+      <button id="add-habit-btn">Add habit</button>
+    </div>
+  </div>
+
+  <!-- Weekly grid -->
+  <div class="panel">
+    <span class="eyebrow">This Week</span>
+    <div class="panel-head">
+      <h2>Weekly checklist</h2>
+      <div class="week-nav">
+        <button id="week-prev">‹</button>
+        <span class="week-label mono" id="week-label"></span>
+        <button id="week-next">›</button>
+      </div>
+    </div>
+    <div id="week-table-wrap"></div>
+  </div>
+
+  <!-- Calendar + day detail -->
+  <div class="panel">
+    <span class="eyebrow">Progress</span>
+    <div class="cal-head">
+      <h2>Calendar</h2>
+      <div class="cal-nav">
+        <button id="cal-prev">‹</button>
+        <span class="cal-month-label" id="cal-month-label"></span>
+        <button id="cal-next">›</button>
+      </div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-legend">
+      <span><span class="legend-swatch" style="background:var(--surface-2);"></span>No habits logged</span>
+      <span><span class="legend-swatch" style="background:rgba(107,143,113,0.35);"></span>Partial</span>
+      <span><span class="legend-swatch" style="background:var(--sage);"></span>All complete</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <span class="eyebrow">Selected Date</span>
+    <div class="day-detail-head">
+      <h2 id="day-detail-title">Today</h2>
+      <span class="day-progress-pill" id="day-progress-pill">0 / 0</span>
+    </div>
+    <div class="day-detail-date mono" id="day-detail-date" style="margin-bottom:14px;"></div>
+    <div class="day-list" id="day-list"></div>
+  </div>
+
+  <footer class="note">Progress saves automatically to the database as soon as you check a box.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Date helpers ----------
+  function fmtDate(d){ // YYYY-MM-DD local
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+  function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+  function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+  function mondayOf(d){ const x=startOfDay(d); const day=(x.getDay()+6)%7; return addDays(x,-day); }
+  const DOW = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const TODAY = startOfDay(new Date());
+
+  // ---------- State ----------
+  let currentUser = null;
+  let habits = [];              // [{id,name}]
+  let progress = {};            // { "YYYY-MM-DD": {habitId:true} }
+  let weekAnchor = mondayOf(TODAY);   // Monday of currently viewed week
+  let calViewDate = new Date(TODAY);  // month currently shown in calendar
+  let selectedDate = new Date(TODAY);
+  let isSignup = false;
+
+  function uid(){ return 'h_' + Math.random().toString(36).slice(2,9); }
+
+  // ---------- Storage ----------
+  async function loadUsers(){
+    try{
+      const r = await window.storage.get('users', true);
+      return r ? JSON.parse(r.value) : {};
+    }catch(e){ return {}; }
+  }
+  async function saveUsers(users){
+    await window.storage.set('users', JSON.stringify(users), true);
+  }
+  async function loadHabits(username){
+    try{
+      const r = await window.storage.get('habits:'+username, true);
+      return r ? JSON.parse(r.value) : [];
+    }catch(e){ return []; }
+  }
+  async function saveHabits(username, list){
+    await window.storage.set('habits:'+username, JSON.stringify(list), true);
+  }
+  async function loadProgress(username){
+    try{
+      const r = await window.storage.get('progress:'+username, true);
+      return r ? JSON.parse(r.value) : {};
+    }catch(e){ return {}; }
+  }
+  async function saveProgress(username, data){
+    await window.storage.set('progress:'+username, JSON.stringify(data), true);
+  }
+
+  // ---------- Auth UI ----------
+  const authForm = document.getElementById('auth-form');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const password2Input = document.getElementById('password2');
+  const confirmField = document.getElementById('confirm-field');
+  const authError = document.getElementById('auth-error');
+  const authSubmitBtn = document.getElementById('auth-submit-btn');
+  const switchBtn = document.getElementById('switch-btn');
+  const switchText = document.getElementById('switch-text');
+
+  switchBtn.addEventListener('click', ()=>{
+    isSignup = !isSignup;
+    confirmField.style.display = isSignup ? 'block' : 'none';
+    authSubmitBtn.textContent = isSignup ? 'Create account' : 'Log in';
+    switchText.textContent = isSignup ? 'Already have an account?' : 'New here?';
+    switchBtn.textContent = isSignup ? 'Log in' : 'Create an account';
+    authError.textContent = '';
+  });
+
+  authForm.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    authError.textContent = '';
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value;
+    if(!username || !password){ authError.textContent = 'Enter a username and password.'; return; }
+
+    authSubmitBtn.disabled = true;
+    authSubmitBtn.textContent = isSignup ? 'Creating…' : 'Logging in…';
+
+    try{
+      const users = await loadUsers();
+      if(isSignup){
+        if(password !== password2Input.value){ authError.textContent = 'Passwords do not match.'; resetBtn(); return; }
+        if(users[username]){ authError.textContent = 'That username is already taken.'; resetBtn(); return; }
+        users[username] = password;
+        await saveUsers(users);
+        await enterApp(username);
+      }else{
+        if(!users[username] || users[username] !== password){
+          authError.textContent = 'Incorrect username or password.'; resetBtn(); return;
+        }
+        await enterApp(username);
+      }
+    }catch(err){
+      authError.textContent = 'Something went wrong saving to the database. Try again.';
+      resetBtn();
+    }
+
+    function resetBtn(){
+      authSubmitBtn.disabled = false;
+      authSubmitBtn.textContent = isSignup ? 'Create account' : 'Log in';
+    }
+  });
+
+  async function enterApp(username){
+    currentUser = username;
+    habits = await loadHabits(username);
+    progress = await loadProgress(username);
+    document.getElementById('user-name-label').textContent = username;
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'block';
+    weekAnchor = mondayOf(TODAY);
+    calViewDate = new Date(TODAY);
+    selectedDate = new Date(TODAY);
+    renderAll();
+  }
+
+  document.getElementById('logout-btn').addEventListener('click', ()=>{
+    currentUser = null; habits = []; progress = {};
+    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    authForm.reset();
+    authError.textContent = '';
+  });
+
+  // ---------- Add habit ----------
+  document.getElementById('add-habit-btn').addEventListener('click', addHabit);
+  document.getElementById('new-habit-input').addEventListener('keydown', (e)=>{ if(e.key==='Enter') addHabit(); });
+  async function addHabit(){
+    const input = document.getElementById('new-habit-input');
+    const name = input.value.trim();
+    if(!name) return;
+    habits.push({ id: uid(), name });
+    input.value = '';
+    await saveHabits(currentUser, habits);
+    renderAll();
+  }
+  async function deleteHabit(id){
+    habits = habits.filter(h=>h.id!==id);
+    // also strip from progress
+    Object.keys(progress).forEach(date=>{ if(progress[date]) delete progress[date][id]; });
+    await saveHabits(currentUser, habits);
+    await saveProgress(currentUser, progress);
+    renderAll();
+  }
+
+  // ---------- Toggle a checkbox ----------
+  async function toggleCheck(dateStr, habitId){
+    const d = new Date(dateStr+'T00:00:00');
+    if(d > TODAY) return; // no logging the future
+    if(!progress[dateStr]) progress[dateStr] = {};
+    progress[dateStr][habitId] = !progress[dateStr][habitId];
+    if(!progress[dateStr][habitId]) delete progress[dateStr][habitId];
+    await saveProgress(currentUser, progress);
+    renderAll();
+  }
+
+  // ---------- Render: week table ----------
+  function renderWeek(){
+    const label = document.getElementById('week-label');
+    const weekEnd = addDays(weekAnchor,6);
+    label.textContent = `${MONTHS[weekAnchor.getMonth()].slice(0,3)} ${weekAnchor.getDate()} – ${MONTHS[weekEnd.getMonth()].slice(0,3)} ${weekEnd.getDate()}`;
+
+    const wrap = document.getElementById('week-table-wrap');
+    if(habits.length===0){
+      wrap.innerHTML = `<div class="empty-state"><div class="mark-big">✎</div><p>No habits yet. Add one above to start your first week — every box starts unchecked.</p></div>`;
+      return;
+    }
+
+    const days = [...Array(7)].map((_,i)=>addDays(weekAnchor,i));
+    let thead = '<tr><th class="habit-col">Habit</th>';
+    days.forEach(d=>{
+      const isToday = fmtDate(d)===fmtDate(TODAY);
+      thead += `<th class="${isToday?'today':''}">${DOW[(d.getDay()+6)%7]}<span class="daynum">${d.getDate()}</span></th>`;
+    });
+    thead += '</tr>';
+
+    let rows = '';
+    habits.forEach(h=>{
+      rows += `<tr><td class="habit-name">${escapeHtml(h.name)}<button class="del-habit" data-del="${h.id}" title="Delete habit">✕</button></td>`;
+      days.forEach(d=>{
+        const dateStr = fmtDate(d);
+        const checked = !!(progress[dateStr] && progress[dateStr][h.id]);
+        const future = d > TODAY;
+        rows += `<td><span class="chk ${checked?'checked':''} ${future?'future':''}" data-date="${dateStr}" data-habit="${h.id}" role="checkbox" aria-checked="${checked}"></span></td>`;
+      });
+      rows += '</tr>';
+    });
+
+    wrap.innerHTML = `<table class="week-table"><thead>${thead}</thead><tbody>${rows}</tbody></table>`;
+
+    wrap.querySelectorAll('.chk').forEach(el=>{
+      el.addEventListener('click', ()=>toggleCheck(el.dataset.date, el.dataset.habit));
+    });
+    wrap.querySelectorAll('.del-habit').forEach(el=>{
+      el.addEventListener('click', ()=>deleteHabit(el.dataset.del));
+    });
+  }
+
+  // ---------- Render: calendar ----------
+  function dayCompletion(dateStr){
+    if(habits.length===0) return null;
+    const rec = progress[dateStr] || {};
+    const done = habits.filter(h=>rec[h.id]).length;
+    return { done, total: habits.length };
+  }
+
+  function renderCalendar(){
+    document.getElementById('cal-month-label').textContent = `${MONTHS[calViewDate.getMonth()]} ${calViewDate.getFullYear()}`;
+    const grid = document.getElementById('cal-grid');
+    let html = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+    const firstOfMonth = new Date(calViewDate.getFullYear(), calViewDate.getMonth(), 1);
+    const startPad = (firstOfMonth.getDay()+6)%7; // Mon=0
+    const daysInMonth = new Date(calViewDate.getFullYear(), calViewDate.getMonth()+1, 0).getDate();
+
+    for(let i=0;i<startPad;i++) html += `<div class="cal-cell pad"></div>`;
+
+    for(let day=1; day<=daysInMonth; day++){
+      const d = new Date(calViewDate.getFullYear(), calViewDate.getMonth(), day);
+      const dateStr = fmtDate(d);
+      const isFuture = d > TODAY;
+      const isToday = dateStr===fmtDate(TODAY);
+      const isSelected = dateStr===fmtDate(selectedDate);
+      const comp = dayCompletion(dateStr);
+
+      let bg = 'var(--surface-2)';
+      if(comp && comp.total>0){
+        if(comp.done===0) bg = 'var(--surface-2)';
+        else if(comp.done===comp.total) bg = 'var(--sage)';
+        else bg = 'rgba(107,143,113,0.35)';
+      }
+      const textColor = (comp && comp.done===comp.total && comp.total>0) ? '#0f1512' : 'var(--parchment)';
+
+      html += `<div class="cal-cell ${isFuture?'future':''} ${isToday?'today':''} ${isSelected?'selected':''}"
+                    data-date="${dateStr}" style="background:${bg};color:${textColor};">
+                  ${day}
+                </div>`;
+    }
+    grid.innerHTML = html;
+
+    grid.querySelectorAll('.cal-cell[data-date]').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const d = new Date(el.dataset.date+'T00:00:00');
+        if(d > TODAY) return;
+        selectedDate = d;
+        renderAll();
+      });
+    });
+  }
+
+  // ---------- Render: day detail ----------
+  function renderDayDetail(){
+    const dateStr = fmtDate(selectedDate);
+    const isToday = dateStr === fmtDate(TODAY);
+    document.getElementById('day-detail-title').textContent = isToday ? 'Today' : DOW[(selectedDate.getDay()+6)%7]+"'s Log";
+    document.getElementById('day-detail-date').textContent = `${MONTHS[selectedDate.getMonth()]} ${selectedDate.getDate()}, ${selectedDate.getFullYear()}`;
+
+    const rec = progress[dateStr] || {};
+    const done = habits.filter(h=>rec[h.id]).length;
+    document.getElementById('day-progress-pill').textContent = `${done} / ${habits.length}`;
+
+    const list = document.getElementById('day-list');
+    if(habits.length===0){
+      list.innerHTML = `<div class="empty-state"><p>Add a habit above to start logging this day.</p></div>`;
+      return;
+    }
+    list.innerHTML = habits.map(h=>{
+      const checked = !!rec[h.id];
+      return `<div class="day-item">
+                <span class="chk ${checked?'checked':''}" data-date="${dateStr}" data-habit="${h.id}" role="checkbox" aria-checked="${checked}"></span>
+                <span>${escapeHtml(h.name)}</span>
+              </div>`;
+    }).join('');
+    list.querySelectorAll('.chk').forEach(el=>{
+      el.addEventListener('click', ()=>toggleCheck(el.dataset.date, el.dataset.habit));
+    });
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderAll(){
+    renderWeek();
+    renderCalendar();
+    renderDayDetail();
+  }
+
+  // ---------- Nav buttons ----------
+  document.getElementById('week-prev').addEventListener('click', ()=>{ weekAnchor = addDays(weekAnchor,-7); renderWeek(); });
+  document.getElementById('week-next').addEventListener('click', ()=>{ weekAnchor = addDays(weekAnchor,7); renderWeek(); });
+  document.getElementById('cal-prev').addEventListener('click', ()=>{ calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth()-1, 1); renderCalendar(); });
+  document.getElementById('cal-next').addEventListener('click', ()=>{ calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth()+1, 1); renderCalendar(); });
+
+})();
+</script>
+</body>
+</html>
